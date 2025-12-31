@@ -4,7 +4,9 @@ Requirements
 Windows OS (direkomendasikan, karena menggunakan run_server.bat)
 Python 3.9+
 Git
+
 2. Database: PostgreSQL
+   
 3. Struktur Tabel Database:
 CREATE TABLE petugas (
     id SERIAL PRIMARY KEY,
@@ -17,10 +19,12 @@ CREATE TABLE instansi (
     nama TEXT UNIQUE,
     aktif BOOLEAN DEFAULT TRUE
 );
+
 4. Library Python
 Flask
 psycopg2 / psycopg2-binary
 library pendukung lain sesuai requirements.txt
+
 5. Konfigurasi koneksi database sesuaikan pada app.py
 
 Cara Menjalankan Aplikasi
