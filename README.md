@@ -1,7 +1,7 @@
 Requirements
 
 1. Sistem & Perangkat Lunak
-Windows OS (direkomendasikan, karena menggunakan run_server.bat)
+Windows OS
 Python 3.9+
 Git
 
@@ -23,7 +23,6 @@ CREATE TABLE instansi (
 4. Library Python
 Flask
 psycopg2 / psycopg2-binary
-library pendukung lain sesuai requirements.txt
 
 5. Konfigurasi koneksi database sesuaikan pada app.py
 
