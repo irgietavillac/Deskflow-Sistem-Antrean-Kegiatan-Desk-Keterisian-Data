@@ -1,9 +1,6 @@
 Requirements
 
-1. Sistem & Perangkat Lunak
-Windows OS
-Python 3.9+
-Git
+1. Sistem & Perangkat Lunak: Windows OS, Python 3.9+, Git
 
 2. Database: PostgreSQL
    
@@ -20,9 +17,7 @@ CREATE TABLE instansi (
     aktif BOOLEAN DEFAULT TRUE
 );
 
-4. Library Python
-Flask
-psycopg2 / psycopg2-binary
+4. Library Python: Flask, psycopg2 / psycopg2-binary
 
 5. Konfigurasi koneksi database sesuaikan pada app.py
 
