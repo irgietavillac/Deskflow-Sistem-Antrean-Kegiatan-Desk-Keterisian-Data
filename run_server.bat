@@ -13,7 +13,7 @@ if errorlevel 1 (
     exit
 )
 
-REM buat venv jika belum ada
+REM buat venv
 if not exist venv (
     echo Membuat virtual environment...
     python -m venv venv
@@ -22,10 +22,10 @@ if not exist venv (
 REM aktifkan venv
 call venv\Scripts\activate
 
-REM upgrade pip (penting biar install tidak gagal)
+REM upgrade pip
 python -m pip install --upgrade pip
 
-REM install dependency (INI YANG MENGATASI FLASK BELUM ADA)
+REM install dependency 
 pip install -r requirements.txt
 
 REM jalankan aplikasi
