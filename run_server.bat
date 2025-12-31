@@ -13,7 +13,7 @@ if errorlevel 1 (
     exit
 )
 
-REM buat venv
+REM buat venv (jaga-jaga bila tidak download folder venv)
 if not exist venv (
     echo Membuat virtual environment...
     python -m venv venv
