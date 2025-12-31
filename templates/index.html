@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Layar Publik</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+.meja-card {
+  height: 300px;
+  display: flex;
+  flex-direction: column;
+}
+.meja-header {
+  background: linear-gradient(135deg, #4898ab);
+  color: white;
+}
+.meja-body {
+  flex: 1;
+  max-height: 260px;
+  overflow-y: auto;
+}
+.instansi-aktif {
+  background-color: #e7f6ff;
+  font-weight: 600;
+}
+.empty-box {
+  padding: 40px;
+  text-align: center;
+  color: #888;
+  font-style: italic;
+}
+</style>
+</head>
+
+<body>
+<div class="container mt-4">
+
+<div class="d-flex justify-content-between mb-3">
+  <img src="/static/img/layar.png" style="height:60px">
+  <img src="/static/img/logo.png" style="height:60px">
+</div>
+
+<div class="d-flex justify-content-end mb-3">
+  <a href="/login" class="btn btn-outline-primary">Login</a>
+</div>
+
+<div id="pengumuman-box"
+     class="alert alert-info text-center fw-bold d-none"></div>
+
+<div class="row" id="meja-container"></div>
+
+</div>
+
+<script>
+let mejaState = {};
+let lastTs = 0;
+
+// section pengumuman
+function loadPengumuman() {
+  fetch("/pengumuman")
+    .then(r => r.json())
+    .then(evt => {
+      if (!evt.ts || evt.ts <= lastTs || evt.data.length === 0) return;
+
+      lastTs = evt.ts;
+      const box = document.getElementById("pengumuman-box");
+      box.innerHTML = evt.data.map(p =>
+        `Berikutnya: <strong>${p.instansi}</strong> ke <strong>${p.meja}</strong>`
+      ).join("<br>");
+      box.classList.remove("d-none");
+
+      setTimeout(() => box.classList.add("d-none"), 7000);
+    });
+}
+
+// card meja antrian
+function loadMeja() {
+  fetch("/api/meja")
+    .then(r => r.json())
+    .then(data => {
+      const c = document.getElementById("meja-container");
+
+      if (!data.meja || data.meja.length === 0) {
+        c.innerHTML = `
+          <div class="empty-box col-12">
+            Saat ini belum ada meja yang terdaftar
+          </div>`;
+        mejaState = {};
+        return;
+      }
+      const empty = c.querySelector(".empty-box");
+      if (empty) empty.remove();
+
+      data.meja.forEach(meja => {
+        const key = meja.nama;
+
+        if (!mejaState[key]) {
+          renderMeja(c, meja);
+        } else {
+          updateMeja(meja);
+        }
+      });
+    });
+}
+
+
+// ngambil data meja
+function renderMeja(container, meja) {
+  const key = meja.nama;
+
+  container.insertAdjacentHTML("beforeend", `
+    <div class="col-md-4" id="meja-${key}">
+      <div class="card mb-3 meja-card">
+        <div class="card-header meja-header">
+          <strong class="meja-nama">${meja.nama}</strong><br>
+          <small class="meja-petugas"></small>
+        </div>
+        <div class="meja-body">
+          <ul class="list-group"></ul>
+        </div>
+      </div>
+    </div>
+  `);
+
+  mejaState[key] = { aktifIndex: -1 };
+
+  updateMeja(meja); 
+}
+
+
+// buat update data meja
+function updateMeja(meja) {
+  const key = meja.nama;
+  const card = document.getElementById(`meja-${key}`);
+  if (!card) return;
+
+  card.querySelector(".meja-petugas").innerText =
+    `Petugas: ${meja.petugas.join(", ") || "-"}`;
+  const body = card.querySelector(".meja-body");
+  const ul = body.querySelector("ul");
+
+  ul.innerHTML = "";
+
+  if (!meja.antrian || meja.antrian.length === 0) {
+    ul.innerHTML = `
+      <div class="empty-box col-12">
+          Belum ada antrian
+          </div>`;
+    mejaState[key].aktifIndex = -1;
+    return;
+  }
+
+  const newAktif = meja.antrian.findIndex(a => !a.selesai);
+  const prevAktif = mejaState[key].aktifIndex;
+
+  meja.antrian.forEach((a, i) => {
+    ul.insertAdjacentHTML("beforeend", `
+      <li class="list-group-item
+        ${a.selesai ? 'text-muted text-decoration-line-through' : ''}
+        ${i === newAktif ? 'instansi-aktif' : ''}">
+        ${a.nama}
+      </li>
+    `);
+  });
+
+  mejaState[key].aktifIndex = newAktif;
+
+  // auto scroll ke instansi aktif
+  if (newAktif !== prevAktif && newAktif >= 0) {
+    const target = ul.children[newAktif];
+    body.scrollTop =
+      target.offsetTop -
+      body.offsetTop -
+      body.clientHeight / 3;
+  }
+}
+
+
+loadMeja();
+loadPengumuman();
+setInterval(loadMeja, 2000);
+setInterval(loadPengumuman, 2000);
+</script>
+
+
+</body>
+</html>

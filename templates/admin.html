@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Admin Desk</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+
+<!-- header logo -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <img src="/static/img/nama.png" alt="Admin Desk" style="height:80px;">
+  <img src="/static/img/logo.png" alt="Logo" style="height:50px;">
+</div>
+
+<!-- section layar publik sama reset -->
+<div class="d-flex justify-content-end mb-3">
+  <a href="/" class="btn btn-outline-primary btn-sm me-2">Layar Publik</a>
+  <a href="/admin/reset"
+     class="btn btn-danger btn-sm"
+     onclick="return confirm('Reset SEMUA meja dan antrian?')">
+    Reset
+  </a>
+</div>
+
+{% if error %}
+<div class="alert alert-warning">{{ error }}</div>
+{% endif %}
+
+<hr>
+
+<!-- buat nambah meja-->
+<h5>Tambah Meja</h5>
+<form method="post" action="/admin/tambah_meja" class="mb-4">
+  <button class="btn btn-primary btn-sm">Tambah Meja</button>
+</form>
+
+<hr>
+
+<!-- input instansi ke antrian -->
+<h5>Tambah Instansi ke Antrian</h5>
+<form method="post" action="/admin/tambah_instansi" class="row g-2 mb-4">
+  <div class="col-md-4">
+    <input list="list-instansi"
+           name="instansi"
+           class="form-control"
+           placeholder="Pilih instansi"
+           required>
+    <datalist id="list-instansi">
+      {% for i in instansi_dropdown %}
+        <option value="{{ i }}">
+      {% endfor %}
+    </datalist>
+  </div>
+
+  <div class="col-md-3">
+    <select name="meja" class="form-select" required>
+      {% for meja in meja_list %}
+      {% set meja_index = loop.index0 %}
+        <option value="{{ loop.index0 }}">{{ meja.nama }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="col-md-2">
+    <button class="btn btn-primary">Tambah</button>
+  </div>
+</form>
+
+<hr>
+
+ <!-- mindah antri -->
+  <h5>Pindahkan Antrian</h5>
+
+  <form method="post"
+        action="/admin/pindah_instansi"
+        class="row g-2 mb-4 align-items-center">
+
+    <!-- asal meja -->
+    <div class="col-md-3">
+      <select name="from_meja" class="form-select" required>
+        <option value="">Meja Asal</option>
+        {% for meja in meja_list %}
+          <option value="{{ loop.index0 }}">{{ meja.nama }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- opd -->
+    <div class="col-md-4">
+      <input name="instansi"
+            class="form-control"
+            placeholder="Nama instansi yang dipindah"
+            required>
+    </div>
+
+    <!-- tujuan-->
+    <div class="col-md-3">
+      <select name="to_meja" class="form-select" required>
+        <option value="">Meja Tujuan</option>
+        {% for meja in meja_list %}
+          <option value="{{ loop.index0 }}">{{ meja.nama }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-md-2">
+      <button type="submit" class="btn btn-primary">
+        Pindahkan
+      </button>
+    </div>
+
+  </form>
+
+
+<hr>
+
+<!--list meja-->
+<h4>Daftar Meja</h4>
+
+{% for meja in meja_list %}
+{% set meja_index = loop.index0 %}
+<div class="card mb-3 shadow-sm">
+
+  <!-- header mejanya -->
+  <div class="card-header bg-primary text-white">
+    <strong>{{ meja.nama }}</strong><br>
+    Petugas:
+    {% if meja.petugas %}
+      {{ meja.petugas | join(", ") }}
+    {% else %}
+      -
+    {% endif %}
+  </div>
+
+  <!-- input petugas ke meja-->
+  <div class="card-body p-2">
+    <form method="post"
+          action="/admin/meja/{{ loop.index0 }}/tambah_petugas"
+          class="d-flex gap-2">
+
+      <input list="list-petugas"
+             name="petugas"
+             class="form-control form-control-sm"
+             placeholder="Tambah petugas">
+
+      <button class="btn btn-sm btn-secondary">
+        Tambah
+      </button>
+    </form>
+  </div>
+
+  <!-- antriannya buat klik selesai -->
+  <ul class="list-group list-group-flush">
+    {% if meja.antrian %}
+      {% for instansi in meja.antrian %}
+      <li class="list-group-item
+          {% if instansi.selesai %}text-decoration-line-through text-muted{% endif %}">
+        {{ instansi.nama }}
+
+        {% if not instansi.selesai %}
+        <a href="/admin/selesai/{{ meja_index }}/{{ loop.index0 }}/{{ instansi.nama | urlencode }}"
+           class="btn btn-sm btn-success float-end">
+          Selesai
+        </a>
+        {% else %}
+        <span class="float-end">✅ Selesai</span>
+        {% endif %}
+      </li>
+      {% endfor %}
+    {% else %}
+      <li class="list-group-item text-muted">Belum ada antrian</li>
+    {% endif %}
+  </ul>
+
+
+
+ 
+
+
+</div>
+{% endfor %}
+
+<hr>
+
+<!-- ini kalau ada petugas baru  -->
+<h4>Manajemen Petugas</h4>
+
+<form method="post" action="/admin/petugas/tambah" class="row g-2 mb-2">
+  <div class="col-md-4">
+    <input name="nama" class="form-control" placeholder="Nama petugas baru">
+  </div>
+  <div class="col-md-2">
+    <button class="btn btn-primary">Tambah</button>
+  </div>
+</form>
+
+<ul class="list-group mb-4">
+{% for nama, aktif in petugas_all %}
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+    <span>
+      {{ nama }}
+      {% if not aktif %}
+        <span class="badge bg-secondary">Nonaktif</span>
+      {% endif %}
+    </span>
+
+    <a href="/admin/petugas/toggle/{{ nama }}"
+       class="btn btn-sm {% if aktif %}btn-outline-danger{% else %}btn-outline-success{% endif %}">
+      {% if aktif %}Nonaktifkan{% else %}Aktifkan{% endif %}
+    </a>
+  </li>
+{% endfor %}
+</ul>
+
+</div>
+
+<!-- dropdownnya -->
+<datalist id="list-petugas">
+  {% for p in petugas_aktif %}
+    <option value="{{ p }}">
+  {% endfor %}
+</datalist>
+
+</body>
+</html>
